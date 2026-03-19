@@ -43,10 +43,14 @@ function App() {
 
       {/* TAMPILAN 2: FORM */}
       {view === 'form' && (
-        <div className="min-h-screen bg-gray-50 p-4 font-sans">
+        <div className="min-h-screen bg-gray-50 p-6 font-sans">
            <button onClick={goHome} className="mb-4 text-blue-600 font-bold hover:underline">
-             &larr; Kembali ke Beranda
-           </button>
+      {/* Ikon panah dibuat lebih besar dengan w-6 h-6 */}
+      <span className="text-2xl group-hover:-translate-x-1 transition-transform">&larr;</span> 
+      
+      {/* Tulisan diperbesar menjadi text-xl (atau text-lg) */}
+      <span className="text-xl tracking-tight">Back to Home</span>
+    </button>
            {/* Kita panggil komponen Form.
                Note: Komponen PredictionForm kamu sebelumnya mungkin belum menerima props 'onSuccess'. 
                Nanti kita sesuaikan sedikit jika error. Untuk sekarang pasang dulu. 
