@@ -150,7 +150,7 @@ const PredictionResult = ({ data, onReset }) => {
               </div>
               <div className="flex gap-8">
                 <span className="text-gray-500 font-bold uppercase">Expert (JNC): <strong className="text-blue-700 ml-1">{data.prediksi_pakar || "--"}</strong></span>
-                <span className="text-gray-500 font-bold uppercase">AI (XGBoost): <strong className="text-blue-700 ml-1">{data.prediksi_xgboost || "--"}</strong></span>
+                <span className="text-gray-500 font-bold uppercase">AI (XGBoost-PSO): <strong className="text-blue-700 ml-1">{data.prediksi_xgboost || "--"}</strong></span>
               </div>
             </div>
           </div>
