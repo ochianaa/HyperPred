@@ -1,11 +1,39 @@
-import React from 'react';
-// Import diperbarui: ShieldAlert ditambahkan
-import { Download, RefreshCcw, CheckCircle, AlertTriangle, AlertOctagon, Activity, Heart, ClipboardCheck, ShieldCheck, Info, ShieldAlert } from "lucide-react";
+import React, { useEffect } from 'react';
+import { Download, RefreshCcw, CheckCircle, AlertTriangle, AlertOctagon, Activity, Heart, ClipboardCheck, ShieldCheck, Info, ShieldAlert, Cpu } from "lucide-react";
 
 const PredictionResult = ({ data, onReset }) => {
+  // Menampilkan data di console browser untuk inspeksi jika diperlukan
+  useEffect(() => {
+    console.log("Data Payload Frontend:", data);
+  }, [data]);
+
+  const resultData = data?.data || {}; 
+  
+  const classification = resultData.klasifikasi_jnc || resultData.prediksi_xgboost || "Unknown";
+  const probability = resultData.probabilitas ? String(resultData.probabilitas).replace('%', '') : "0.00";
+  const source = resultData.sumber || "Sistem";
+  
+  // Mencari input_data di seluruh level JSON
+  const input = resultData.input_data || data?.input_data || {};
+  // SOLUSI: Ambil BMI dan Umur langsung dari resultData (sesuai app.py)
+  const bmiFinal = resultData.imt || "--";
+  const ageFinal = resultData.umur || "--";
+  const bmiCatFinal = resultData.imt_category || "1";
+  
+  // EKSTRAKSI OTOMATIS: Memotong nilai tensi dari teks laporan jika input_data kosong
+  let sysFinal = input.sistole;
+  let diaFinal = input.diastole;
+  if (resultData.tekanan_darah) {
+      const tdParts = resultData.tekanan_darah.split(' ')[0].split('/');
+      if(tdParts.length === 2) {
+          sysFinal = tdParts[0];
+          diaFinal = tdParts[1];
+      }
+  }
+
   const getJNCStatus = (label) => {
     const l = label ? label.toLowerCase() : "";
-    if (l.includes("normal")) 
+    if (l.includes("normal") || l.includes("tidak terdeteksi")) 
       return { 
         color: "text-emerald-600", 
         bg: "bg-emerald-50", 
@@ -40,53 +68,65 @@ const PredictionResult = ({ data, onReset }) => {
     return { color: "text-gray-600", bg: "bg-gray-50", icon: Activity, level: 0, desc: "Undefined data." };
   };
 
-  const statusStyle = getJNCStatus(data.prediksi_xgboost);
-  const confidenceScore = data.confidence_score || "94.8"; 
+  const statusStyle = getJNCStatus(classification);
 
   const getBMICategoryLabel = (val) => {
     const map = { "0": "Underweight", "1": "Normal", "2": "Overweight", "3": "Obese" };
-    return map[val] || "Normal";
+    const key = String(val);
+    return map[key] || "Normal";
   };
 
   return (
-    <div className="min-h-screen bg-white py-4 px-4 font-sans flex flex-col items-center justify-start">
+    <div className="min-h-screen bg-white py-6 px-4 font-sans flex flex-col items-center justify-start">
       <style dangerouslySetInnerHTML={{ __html: `
         @media screen {
-          .report-container { width: 900px !important; margin: 0 auto; }
+          .report-container { width: 850px !important; margin: 0 auto; }
         }
         @media print {
+          body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
-          .report-container { width: 100% !important; transform: scale(0.95); transform-origin: top center; }
+          .report-container { width: 100% !important; }
+          .rounded-box { border: 1px solid #e5e7eb !important; }
         }
+        .status-bg-dynamic { transition: all 0.5s ease; }
       `}} />
 
       <div className="report-container space-y-4">
-        {/* Compact Header */}
+        
         <div className="text-center py-2 border-b-4 border-blue-600 flex justify-between items-center">
           <div className="flex items-center gap-2 text-blue-700">
              <Heart className="w-8 h-8 fill-current" />
              <span className="font-black text-2xl uppercase tracking-tighter">HyperPred</span>
           </div>
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Medical Assessment Report</span>
         </div>
 
-        {/* --- INTEGRATED RESULT SECTION --- */}
         <div className={`rounded-[3rem] border-4 border-gray-100 overflow-hidden shadow-sm ${statusStyle.bg}`}>
           <div className="p-10 text-center">
             <h2 className="text-gray-500 font-black uppercase tracking-[0.3em] text-sm mb-4">Based on Integrated Prediction Result</h2>
             
             <div className={`text-8xl font-black mb-6 tracking-tighter ${statusStyle.color}`}>
-              {data.prediksi_xgboost}
+              {classification}
             </div>
 
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center gap-4 mb-8 flex-wrap">
                <div className="flex items-center gap-3 px-8 py-3 bg-white rounded-full border-2 border-gray-100 shadow-md">
                   <ShieldCheck className="w-6 h-6 text-blue-600" />
-                  <span className="text-sm font-black text-gray-500 uppercase">Confidence Level:</span>
-                  <span className="text-4xl font-black text-blue-700">{confidenceScore}%</span>
+                  <span className="text-sm font-black text-gray-500 uppercase">Probability:</span>
+                  <span className="text-4xl font-black text-blue-700">
+                    {probability}%
+                  </span>
+               </div>
+               
+               <div className="flex items-center gap-3 px-8 py-3 bg-white rounded-full border-2 border-gray-100 shadow-md">
+                  <Cpu className={`w-6 h-6 ${source.includes('Pakar') ? 'text-red-600' : 'text-blue-600'}`} />
+                  <span className="text-sm font-black text-gray-500 uppercase">Decision By:</span>
+                  <span className={`text-xl font-black uppercase ${source.includes('Pakar') ? 'text-red-600' : 'text-blue-600'}`}>
+                    {source.includes('Pakar') ? 'Expert System' : 'XGBoost AI'}
+                  </span>
                </div>
             </div>
 
-            {/* Risk Meter Bar */}
             <div className="max-w-md mx-auto px-4 mb-8">
                <div className="flex gap-3 h-6 mb-3">
                   {[1, 2, 3, 4].map((step) => (
@@ -101,7 +141,6 @@ const PredictionResult = ({ data, onReset }) => {
                </div>
             </div>
 
-            {/* Diagnostic Description */}
             <div className="bg-white/70 p-6 rounded-[2rem] border-2 border-white max-w-3xl mx-auto flex items-start gap-4 shadow-sm">
                 <Info className={`w-8 h-8 flex-shrink-0 mt-1 ${statusStyle.color}`} />
                 <p className="text-xl font-bold text-gray-700 text-left leading-relaxed">
@@ -111,24 +150,23 @@ const PredictionResult = ({ data, onReset }) => {
           </div>
         </div>
 
-        {/* --- PATIENT DATA SUMMARY --- */}
         <div className="bg-white rounded-[2.5rem] p-8 border-2 border-gray-100 shadow-sm">
            <h3 className="font-black text-gray-800 text-lg flex items-center gap-2 mb-8 uppercase tracking-widest border-l-8 border-blue-600 pl-4">
              <ClipboardCheck className="w-6 h-6 text-blue-600" /> Patient Data Summary
            </h3>
            
            <div className="grid grid-cols-4 gap-6 mb-8">
-              <DataBox label="Systolic" value={data.input_data?.sistole} unit="mmHg" color="text-red-600" />
-              <DataBox label="Diastolic" value={data.input_data?.diastole} unit="mmHg" color="text-red-600" />
-              <DataBox label="BMI Score" value={data.input_data?.imt} unit="kg/m²" color="text-blue-700" />
-              <DataBox label="Age" value={data.input_data?.umur} unit="Years" color="text-gray-700" />
+              <DataBox label="Systolic" value={sysFinal} unit="mmHg" color="text-red-600" />
+              <DataBox label="Diastolic" value={diaFinal} unit="mmHg" color="text-red-600" />
+              <DataBox label="BMI Score" value={bmiFinal} unit="kg/m²" color="text-blue-700" />
+              <DataBox label="Age" value={ageFinal} unit="Years" color="text-gray-700" />
            </div>
 
            <div className="bg-gray-50 rounded-3xl p-6 flex items-center justify-between border-2 border-gray-100">
               <span className="text-sm font-black text-gray-400 uppercase tracking-widest ml-4">Body Mass Classification:</span>
               <div className="flex items-center gap-6">
                   <span className="text-4xl font-black text-blue-700 uppercase tracking-tighter">
-                    {getBMICategoryLabel(data.input_data?.imt_category)}
+                    {getBMICategoryLabel(input.imt_category)}
                   </span>
                   <div className="h-12 w-[3px] bg-gray-200"></div>
                   <span className="text-xs font-bold text-gray-400 max-w-[150px] leading-tight uppercase text-right">Based on WHO Standards</span>
@@ -136,16 +174,14 @@ const PredictionResult = ({ data, onReset }) => {
            </div>
         </div>
 
-        {/* --- VERSI SLIM: Medical Disclaimer --- */}
         <div className="bg-blue-50/50 rounded-2xl p-4 border border-blue-100 flex items-center gap-4">
           <ShieldAlert className="w-5 h-5 text-blue-600 flex-shrink-0" />
           <p className="text-[18px] leading-relaxed text-blue-900 font-medium italic">
-            <strong>Medical Disclaimer:</strong> This result is an initial AI-based screening. 
+            Medical Disclaimer: This result is an initial AI-based screening. 
             Consult a physician immediately if high risk is detected or for further medical evaluation.
           </p>
         </div>
 
-        {/* Buttons (no-print) */}
         <div className="flex gap-4 justify-center no-print pt-4">
           <button onClick={onReset} className="flex items-center gap-3 px-12 py-4 bg-gray-100 text-gray-500 font-black rounded-2xl hover:bg-gray-200 transition-all text-base uppercase">
             <RefreshCcw className="w-5 h-5" /> Analyze Again
@@ -156,21 +192,27 @@ const PredictionResult = ({ data, onReset }) => {
         </div>
 
         <p className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] pt-4">
-           Automated Assessment System • (c) 2026 Ochiana IT Thesis
+            Automated Assessment System (c) 2026 Ochiana IT Thesis
         </p>
       </div>
     </div>
   );
 };
 
-const DataBox = ({ label, value, unit, color }) => (
-  <div className="bg-gray-50 p-6 rounded-3xl border-2 border-gray-100 flex flex-col items-center justify-center">
-    <div className="text-xs font-black text-gray-400 uppercase mb-2 tracking-widest text-center">{label}</div>
-    <div className={`text-5xl font-black ${color} flex items-baseline gap-1 tracking-tighter`}>
-      {value || '--'} 
-      <span className="text-xs font-bold text-gray-300 uppercase ml-1">{unit}</span>
+const DataBox = ({ label, value, unit, color }) => {
+  // Logika tahan banting: Pastikan angka 0 tetap muncul dan buang nilai string NaN
+  const isValid = value !== undefined && value !== null && String(value).trim() !== '' && String(value).toLowerCase() !== 'nan';
+  const displayValue = isValid ? value : '--';
+  
+  return (
+    <div className="bg-gray-50 p-6 rounded-3xl border-2 border-gray-100 flex flex-col items-center justify-center">
+      <div className="text-xs font-black text-gray-400 uppercase mb-2 tracking-widest text-center">{label}</div>
+      <div className={`text-5xl font-black ${color} flex items-baseline gap-1 tracking-tighter`}>
+        {displayValue} 
+        <span className="text-xs font-bold text-gray-300 uppercase ml-1">{unit}</span>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default PredictionResult;

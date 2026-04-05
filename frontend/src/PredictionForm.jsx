@@ -59,7 +59,7 @@ const PredictionForm = ({ onSuccess, onBack }) => {
     };
 
     try {
-      const response = await fetch('https://hyperpred-production.up.railway.app/predict', {
+      const response = await fetch('http://127.0.0.1:5000/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
