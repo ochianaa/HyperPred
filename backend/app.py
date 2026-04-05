@@ -102,9 +102,16 @@ def predict():
                 "klasifikasi_jnc": jnc_class,
                 "skor_pakar": f"{expert_score} poin",
                 "kesimpulan": kesimpulan,
-                "probabilitas": f"{probabilitas:.2f}%",
+                "probabilitas": f"{probabilitas:.2f}",
                 "sumber": sumber,
-                "is_high_risk": is_high_risk
+                "is_high_risk": is_high_risk,
+                "input_data": {
+                    "sistole": sistole,
+                    "diastole": diastole,
+                    "imt": bmi_value,
+                    "umur": data.get('umur', 0),
+                    "imt_category": imt_cat
+                }
             }
         })
 
