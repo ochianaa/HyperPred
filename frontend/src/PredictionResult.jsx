@@ -132,7 +132,17 @@ const PredictionResult = ({ data, onReset }) => {
             <div className="max-w-xl mx-auto px-4 mb-8 avoid-break">
                <div className="flex gap-2 lg:gap-4 h-3 lg:h-6 mb-4">
                   {[1, 2, 3, 4].map((step) => (
-                    <div key={step} className={`flex-1 rounded-full ${step <= statusStyle.level ? (step === 1 ? 'bg-emerald-500' : step === 2 ? 'bg-yellow-400' : step === 3 ? 'bg-orange-500' : 'bg-red-600') : 'bg-gray-200'}`} />
+                    <div 
+                      key={step} 
+                      className={`flex-1 rounded-full ${
+                        step === statusStyle.level 
+                          ? (step === 1 ? 'bg-emerald-500' : 
+                             step === 2 ? 'bg-yellow-400' : 
+                             step === 3 ? 'bg-orange-500' : 
+                             'bg-red-600') 
+                          : 'bg-gray-200'
+                      }`} 
+                    />
                   ))}
                </div>
                <div className="grid grid-cols-4 gap-2 text-center text-[10px] md:text-base font-black text-gray-400 uppercase tracking-tighter">
