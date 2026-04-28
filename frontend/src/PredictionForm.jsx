@@ -59,7 +59,7 @@ const PredictionForm = ({ onSuccess, onBack }) => {
     };
 
     try {
-      const response = await fetch('https://hyperpred-production.up.railway.app/predict', {
+      const response = await fetch('https://backend-production-8d89.up.railway.app/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
